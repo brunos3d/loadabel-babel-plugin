@@ -1,11 +1,5 @@
 import { getImportArg } from '../util'
 
-/**
- *
- * @param {import('@babel/helper-plugin-utils').BabelAPI} api
- * @param {import('../index').LoadabelBabelPluginOptions} options
- * @returns {import('../index').PropertyFactory}
- */
 export default function resolveProperty(
   { types: t, template },
   { moduleFederation },
@@ -47,28 +41,9 @@ export default function resolveProperty(
     return t.stringLiteral(importArg.node.value)
   }
 
-  /**
-   * @type {import('../index').PropertyFactory}
-   */
-  const factory = (
-    /**
-     * @type {import('../index').PropertyFactoryOptions}
-     */
-    { callPath, funcPath, path },
-  ) => {
-    const properties = path.get('arguments.1.properties')
-
-    const isFederated =
-      moduleFederation ||
-      (Array.isArray(properties) &&
-        properties.some(
-          prop =>
-            prop.isObjectProperty() &&
-            prop.get('key').isIdentifier({ name: 'federated' }) &&
-            prop.get('value').isBooleanLiteral({ value: true }),
-        ))
-
-    const targetTemplate = isFederated ? 'federated' : 'standard'
+  return ({ callPath, funcPath }) => {
+    const targetTemplate =
+      moduleFederation && process.isBrowser === false ? 'federated' : 'standard'
 
     return t.objectMethod(
       'method',
@@ -79,6 +54,4 @@ export default function resolveProperty(
       ),
     )
   }
-
-  return factory
 }
